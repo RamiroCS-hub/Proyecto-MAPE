@@ -11,8 +11,8 @@ def emailSender(message,email):
     
     server.ehlo()
     msg["Subject"] = "ALARMA ACTIVADA!"
-    mesage = "Hora de activacion" + message
-    msg.attach(MIMEText(message, "plain"))
+    mesage = "Momento de activacion: " + message
+    msg.attach(MIMEText(mesage, "plain"))
     # Saco los espacios dentro del email
     email = email.strip()
     #Inicio la conexión
