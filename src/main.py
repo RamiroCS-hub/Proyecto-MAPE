@@ -6,9 +6,9 @@ from datetime import datetime
 
 firebase = firebase.FirebaseApplication("https://fir-test-50790-default-rtdb.firebaseio.com/",None)
 
-resultado = firebase.get("\Alarma", None)
+email = firebase.get("User/email",None)
 
-if resultado == None:
-    now = datetime.now()	
-    time = now.strftime("%B %d %Y %H:%M:%S")
-    emailSender(time,"ramirocarnicersouble8@gmail.com")
+now = datetime.now()	
+time = now.strftime("%B %d %Y %H:%M:%S")
+emailSender(time,email)
+

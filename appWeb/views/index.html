@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel= "stylesheet" href="../public/normalize.css">
+    <link rel= "stylesheet" href="../public/style.css">
+    <title>Firebase Security</title>
+</head>
+<body>
+    <h2>Crear cuenta de Firebase Security</h2>
+    
+    <input class="formBody__name" type="text" placeholder="Ingrese su nombre" />
+    <input class="formBody__inp" type="text" placeholder="Ingrese su email" />
+    <button class="formBody__btn">ENVIAR</button>
+
+</body>
+<!-- <script src="../main.js" type="module"></script> -->
+<script type="module">
+    // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-analytics.js";
+  import {set, getDatabase, ref, get,child} from "https://www.gstatic.com/firebasejs/9.10.0/firebase-database.js"
+  const firebaseConfig = {
+    apiKey: "AIzaSyDbl-00Gqp-54bl41O6hqTx83HyPh4hlyE",
+    authDomain: "fir-test-50790.firebaseapp.com",
+    databaseURL: "https://fir-test-50790-default-rtdb.firebaseio.com",
+    projectId: "fir-test-50790",
+    storageBucket: "fir-test-50790.appspot.com",
+    messagingSenderId: "103354347929",
+    appId: "1:103354347929:web:7c296fd5afc35b2dc16308",
+    measurementId: "G-68G3HGY449"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+
+  const db = getDatabase();
+
+    let email = document.querySelector(".formBody__inp");
+    let name = document.querySelector(".formBody__name");
+    let btn = document.querySelector(".formBody__btn")
+
+    const insertData = () => {
+        set(ref(db,"\User"),{
+            name:name.value,
+            alarma:0,
+            email:email.value
+        }).then(() =>{
+            console.log("Data guardada correctamente");
+        }).catch((e) =>{
+            console.log("El error fue",e);
+        })
+        email.value = "";
+        name.value = "";
+        
+    }
+    // const readData = () => {
+    //     const dbref = ref(db);
+    //     get(child(dbref,"User")
+    //     ).then((snapshot) =>{
+    //         alarmaVal = snapshot.val().alarma;
+    //     });
+    //     // if (alarmaVal = 1){
+
+    //     // }
+    // }
+    // setInterval(readData,500);
+    btn.addEventListener("click",insertData);
+</script>
+</html>
