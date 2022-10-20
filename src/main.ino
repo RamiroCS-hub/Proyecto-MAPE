@@ -165,7 +165,7 @@ void alarmaActivada(){
       sinVal = (sin(x*(3.1412/180)));
       //calculamos el valor de la frecuencioa
       toneVal = 2000+(int(sinVal*1000));
-      tone(7, toneVal);
+      tone(18, toneVal);
       delay(2);
       if(alarma == 1){
         stateAlarm=!stateAlarm;
@@ -174,6 +174,6 @@ void alarmaActivada(){
     }
   }
   else{
-    noTone(7);
+    noTone(18);
   }
 }
