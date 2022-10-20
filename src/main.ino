@@ -38,8 +38,12 @@ bool flag_conectado = false;
 int contador_segundos;
 
 bool valor = true;
+
 void sendEmail (String);
 void alarma_activada(void);
+void sistemaAlarma (void);
+
+
 void setup(){
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);
@@ -84,9 +88,14 @@ int toneVal;
 boolean stateAlarm;
 
 void loop(){
-    Firebase.getInt(fbdo,"User/alarma");
-    Serial.println(fbdo.intData());
-    if(fbdo.intData() == 1 && flag == false){
+  
+    sistemaAlarma();
+}
+
+void sistemaAlarma (void){
+      Firebase.getString(fbdo,"User/alarma");
+    Serial.println(fbdo.stringData());
+    if(fbdo.stringData() == "1" && flag == false){
         Firebase.getString(fbdo,"User/email");
         String email = fbdo.stringData();
         Serial.print(email);
@@ -96,6 +105,7 @@ void loop(){
       Serial.println("oo");
     }
 }
+  
 
 void sendEmail (String email){
     
@@ -137,9 +147,9 @@ void sendEmail (String email){
 }
 
 void alarma_activada(){
-  Firebase.getInt(fbdo,"User\alarma");
-  int alarma = firebaseData.intData() 
-  if(alarma == 1){
+  Firebase.getString(fbdo,"User\alarma");
+  int alarma = firebaseData.stringData() 
+  if(alarma == "1"){
     //se activa la alarma
     stateAlarm=!stateAlarm;
     delay(300);
