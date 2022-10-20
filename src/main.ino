@@ -39,7 +39,7 @@ int contador_segundos;
 
 bool valor = true;
 void sendEmail (String);
-
+void alarma_activada(void);
 void setup(){
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);
@@ -74,7 +74,15 @@ void setup(){
     
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 }
+
 bool flag = false;
+//amplitud de la señal
+float sinVal;
+//frecuencia del tono
+int toneVal;
+//estado de la alarma
+boolean stateAlarm;
+
 void loop(){
     Firebase.getInt(fbdo,"User/alarma");
     Serial.println(fbdo.intData());
@@ -126,4 +134,32 @@ void sendEmail (String email){
         Serial.println("Error sending Email, " + smtp.errorReason());
     }
     ESP_MAIL_PRINTF("Liberar memoria: %d\n", MailClient.getFreeHeap());
+}
+
+void alarma_activada(){
+  Firebase.getInt(fbdo,"User\alarma");
+  int alarma = firebaseData.intData() 
+  if(alarma == 1){
+    //se activa la alarma
+    stateAlarm=!stateAlarm;
+    delay(300);
+  }
+
+  if(stateAlarm==1){
+    for(int x=0;x<180;x++){
+      //convertimos los grados de 0 a 180 a radienas 
+      sinVal = (sin(x*(3.1412/180)));
+      //calculamos el valor de la frecuencioa
+      toneVal = 2000+(int(sinVal*1000));
+      tone(7, toneVal);
+      delay(2);
+      if(alarma == 1){
+        stateAlarm=!stateAlarm;
+        delay(300);
+      }
+    }
+  }
+  else{
+    noTone(7);
+  }
 }
