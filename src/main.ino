@@ -40,7 +40,7 @@ int contador_segundos;
 bool valor = true;
 
 void sendEmail (String);
-void alarma_activada(void);
+void alarmaActivada(void);
 void sistemaAlarma (void);
 
 
@@ -88,18 +88,22 @@ int toneVal;
 boolean stateAlarm;
 
 void loop(){
-  
-    sistemaAlarma();
+    Firebase.getString(fbdo,"alamSis")
+    if (fbdo.stringData() == "1"){
+      sistemaAlarma();
+    }
+    
 }
 
 void sistemaAlarma (void){
-      Firebase.getString(fbdo,"User/alarma");
+    Firebase.getString(fbdo,"User/alarma");
     Serial.println(fbdo.stringData());
     if(fbdo.stringData() == "1" && flag == false){
         Firebase.getString(fbdo,"User/email");
         String email = fbdo.stringData();
         Serial.print(email);
         sendEmail(email);
+        alarmaActivada();
         flag = true;
     }else{
       Serial.println("oo");
@@ -146,7 +150,7 @@ void sendEmail (String email){
     ESP_MAIL_PRINTF("Liberar memoria: %d\n", MailClient.getFreeHeap());
 }
 
-void alarma_activada(){
+void alarmaActivada(){
   Firebase.getString(fbdo,"User\alarma");
   int alarma = firebaseData.stringData() 
   if(alarma == "1"){
