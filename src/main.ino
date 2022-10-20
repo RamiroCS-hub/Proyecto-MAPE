@@ -1,15 +1,20 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ESP_Mail_Client.h> //Documentación: https://github.com/mobizt/ESP-Mail-Client/blob/master/README.md
+#include <FirebaseESP32.h>
+#include <ESP32Time.h>
 
+// #include <iostream>
 //Configuracion del servidor NTP
 const char* ntpServer = "pool.ntp.org"; //Servidor NTP
-const long gmtOffset_sec = -4*3600;     //Desplazamiento GMT
+const long gmtOffset_sec = (-4*3600) + 3600;     //Desplazamiento GMT
 const int daylightOffset_sec = 0;       //Compensa
 
+using namespace std;
+
 // WiFi
-#define WIFI_SSID "Etrr Free"
-#define WIFI_PASSWORD ""
+#define SSID "ETRR Free"
+#define PASSWORD ""
 
 // Nombre servidor smtp
 #define SMTP_HOST "smtp.gmail.com"
@@ -19,39 +24,75 @@ const int daylightOffset_sec = 0;       //Compensa
 #define AUTHOR_EMAIL "pythonnexample@gmail.com"
 #define AUTHOR_PASSWORD "rjvjltqrzdatisvu"
 
-// Declaramos una variable para referenciar la sesión SMTP 
-SMTPSession smtp;
 ESP32Time rtc;
+//Defino Firebase objects
+#define API_KEY "onRVw4e1U3GPcL9QOLwoLWteRvEk7945GKPgILH3"
+#define DATABASE_URL "https://fir-test-50790-default-rtdb.firebaseio.com/"
+
+// Define Firebase Data object
+FirebaseData fbdo;
+FirebaseConfig config;
+SMTPSession smtp;
+
+bool flag_conectado = false;
+int contador_segundos;
+
+bool valor = true;
+void sendEmail (String);
 
 void setup(){
+  pinMode(LED_BUILTIN, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("Bienvenido a la consola de pruebas...");
 
-    Serial.begin(9600);
-    Serial.println();
-    Serial.print("Conectando al Acess point...");
+  WiFi.begin(SSID, PASSWORD);
+  
+  while((WiFi.status() != WL_CONNECTED) && (!flag_conectado)){
+    delay(1000);
+    Serial.println(contador_segundos);
+    contador_segundos ++;
+    if (contador_segundos == 60) flag_conectado = true; // Coloco esta condición como timeout = 2s, para que en caso de que no se pueda conectar pueda salir del lazo del while.
+  }
+  if(WiFi.status() == WL_CONNECTED){
+    digitalWrite(LED_BUILTIN, HIGH);
+  }
+  else{
+    digitalWrite(LED_BUILTIN, LOW);
+  }
+  Serial.printf("Firebase Client v%s\n\n", FIREBASE_CLIENT_VERSION);
 
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    while (WiFi.status() != WL_CONNECTED){
-    Serial.print(".");
-    delay(200);
-    }
-    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  /* Assign the api key (required) */
+  config.api_key = API_KEY;
 
-}
-void sendEmail (string);
-void loop(){
-    string email;
-    Firebase.getInt(fbdo,"alarma");
-    if(firebaseData.intData() == 1){
-        Firebase.getString(fbdo,"email")
-        email = firebaseData.stringData()
-        sendEmail(email);
-    }
-}
+  /* Assign the RTDB URL (required) */
+  config.database_url = DATABASE_URL;
 
-void sendEmail (email){
+  Firebase.begin(DATABASE_URL, API_KEY);
+  // Comment or pass false value when WiFi reconnection will control by your code or third party library
+  Firebase.reconnectWiFi(true);
+  Firebase.setDoubleDigits(5);
     
-    strin textMsg = rtc.getTime("%A, %B %d %Y %H:%M:%S");
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+}
+bool flag = false;
+void loop(){
+    Firebase.getInt(fbdo,"User/alarma");
+    Serial.println(fbdo.intData());
+    if(fbdo.intData() == 1 && flag == false){
+        Firebase.getString(fbdo,"User/email");
+        String email = fbdo.stringData();
+        Serial.print(email);
+        sendEmail(email);
+        flag = true;
+    }else{
+      Serial.println("oo");
+    }
+}
 
+void sendEmail (String email){
+    
+    String textMsg = rtc.getTime("%A, %B %d %Y %H:%M:%S");
+    // String textMsg = "asdasd";
     /* Declaramos una Sesion para poder configurar*/
     ESP_Mail_Session session;
 
@@ -66,7 +107,7 @@ void sendEmail (email){
     /* Especificar los encabezados*/
     message.sender.email = AUTHOR_EMAIL;
     message.subject = "ALARMA ACTIVADA";
-    message.addRecipient(email,email)
+    message.addRecipient(email,email);
     
     message.text.content = textMsg.c_str();
 
@@ -76,7 +117,9 @@ void sendEmail (email){
     message.priority = esp_mail_smtp_priority::esp_mail_smtp_priority_normal;
 
     /* Conectar al servidor con la configuracios de la sesión*/
-    if (!smtp.connect(&session)) Serial.pintln("No se pudo conectar")
+    if (!smtp.connect(&session)){
+      Serial.println("No se pudo conectar");
+    }
     
     /* Envía el correo y cierra la sesión */
     if (!MailClient.sendMail(&smtp, &message)){
