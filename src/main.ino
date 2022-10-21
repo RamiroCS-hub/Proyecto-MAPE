@@ -95,7 +95,7 @@ void loop(){
     
 }
 
-void sistemaAlarma (void){
+void sistemaAlarma (){
     Firebase.getString(fbdo,"User/alarma");
     Serial.println(fbdo.stringData());
     if(fbdo.stringData() == "1" && flag == false){
@@ -151,29 +151,12 @@ void sendEmail (String email){
 }
 
 void alarmaActivada(){
-  Firebase.getString(fbdo,"User\alarma");
-  int alarma = firebaseData.stringData() 
-  if(alarma == "1"){
-    //se activa la alarma
-    stateAlarm=!stateAlarm;
-    delay(300);
-  }
-
-  if(stateAlarm==1){
-    for(int x=0;x<180;x++){
-      //convertimos los grados de 0 a 180 a radienas 
+   for(int x=0; x<180; x++){
+      //convertimos los grados de 0 a 180 a radianes
       sinVal = (sin(x*(3.1412/180)));
-      //calculamos el valor de la frecuencioa
+      //calculamos el valor de la frecuencia
       toneVal = 2000+(int(sinVal*1000));
       tone(18, toneVal);
       delay(2);
-      if(alarma == 1){
-        stateAlarm=!stateAlarm;
-        delay(300);
-      }
     }
-  }
-  else{
-    noTone(18);
-  }
 }
