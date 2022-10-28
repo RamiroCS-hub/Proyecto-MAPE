@@ -1,0 +1,147 @@
+#include <Arduino.h>
+#include <WiFi.h>
+#include <FirebaseESP32.h> 
+
+#define SSID "ETRR Free"
+#define PASSWORD ""
+
+#define API_KEY "onRVw4e1U3GPcL9QOLwoLWteRvEk7945GKPgILH3"
+#define DATABASE_URL "https://fir-test-50790-default-rtdb.firebaseio.com/"
+
+#define TRIGGERPIN 26
+#define ECHOPIN 25
+
+FirebaseData fbdo;
+//FirebaseAuth auth;
+//FirebaseConfig config;
+
+bool flag_conectado = 0;
+int contador_segundos = 0;
+bool bit;
+float dist_recibida;
+
+void ConectarWiFi (void);
+float MedirDistancia (void);
+void EncenderLuz (void);
+void EnviarDato(int, float);
+void SacarFoto(void);
+
+void setup() {
+  ConectarWiFi();
+  pinMode(33, INPUT);
+  pinMode(27, OUTPUT);
+  pinMode(32, OUTPUT);
+  pinMode(ECHOPIN, INPUT);
+  pinMode(TRIGGERPIN, OUTPUT);
+}
+
+void loop() {
+    int Luz = (analogRead(33));
+    float Distancia = MedirDistancia();
+
+    EnviarDato(Luz, Distancia);
+    EncenderLuz();
+    SacarFoto();
+
+    delay(500);
+  }
+ 
+void ConectarWiFi (void){
+  pinMode(LED_BUILTIN, OUTPUT);
+  Serial.begin(9600);
+
+  WiFi.begin(SSID, PASSWORD);
+
+  while((WiFi.status() != WL_CONNECTED) && (!flag_conectado)){
+    delay(1000);
+    Serial.println(contador_segundos);
+    contador_segundos ++;
+    if(contador_segundos == 60) flag_conectado = true;
+  }
+
+  if(WiFi.status() == WL_CONNECTED){
+    digitalWrite(LED_BUILTIN, HIGH);
+  }
+  else{
+    digitalWrite(LED_BUILTIN, LOW);
+  }
+
+  Serial.printf("Firebase Client v%s\n\n", FIREBASE_CLIENT_VERSION);
+
+  //config.api_key = API_KEY;
+
+  //config.database_url = DATABASE_URL;
+
+  Firebase.begin(DATABASE_URL, API_KEY);
+
+  Firebase.reconnectWiFi(true);
+
+  Firebase.setDoubleDigits(5);
+}
+
+float MedirDistancia (void){
+  digitalWrite(TRIGGERPIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIGGERPIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIGGERPIN, LOW);
+
+  float Duracion, Distancia;
+
+  Duracion = pulseIn(ECHOPIN, HIGH);
+  Distancia = Duracion/58;//convertimos el tiempo a la distancia en cm
+
+  return Distancia;
+}
+
+void EnviarDato(int Luz, float Distancia){
+    Firebase.setInt(fbdo, "User/Luz", Luz);
+    Firebase.setFloat(fbdo, "User/Distancia", Distancia);
+   
+    if(Luz > 2000){
+     
+      Firebase.setString(fbdo, "User/Estado", "Noche");
+      Firebase.setBool(fbdo, "User/Foco", true);
+     
+      Serial.println("Noche");
+    }
+    else{
+      if(Luz <= 2000){
+
+        Firebase.setString(fbdo, "User/Estado", "Dia");
+        Firebase.setBool(fbdo, "User/Foco", false);
+
+        Serial.println("Dia");
+
+      }
+    }
+
+    Serial.print("Nivel de luz: ");
+    Serial.println(Luz);
+    Serial.print("Distancia: ");
+    Serial.println(Distancia);
+}
+
+void EncenderLuz(void){
+  Firebase.getBool(fbdo, "User/Foco", &bit);
+  Firebase.getFloat(fbdo, "User/Distancia", &dist_recibida);
+  if (bit == true && dist_recibida <= 20){
+    digitalWrite(32, HIGH);
+  }
+  else{
+      digitalWrite(32, LOW);
+  }
+}
+
+void SacarFoto(void){
+  Firebase.getFloat(fbdo, "User/Distancia", &dist_recibida);
+  bool Camara = digitalRead(27);
+  if(dist_recibida <= 5 && Camara == true){
+    Firebase.setBool(fbdo, "User/Foto", true);
+    Serial.println("Sacar foto");
+    Serial.println("- - - - - - - - - - - -");
+  }
+  else
+  Firebase.setBool(fbdo, "User/Foto", false);
+    Serial.println("- - - - - - - - - - - -");
+}

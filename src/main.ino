@@ -97,10 +97,17 @@ void loop(){
     digitalWrite(18,HIGH);
 }
 
+<<<<<<< HEAD
 void sistemaAlarma (void){
     String alarma;
     Firebase.getString(fbdo,"User/alarma",&alarma);
     if(alarma == "1" && flag == false){
+=======
+void sistemaAlarma (){
+    Firebase.getString(fbdo,"User/alarma");
+    Serial.println(fbdo.stringData());
+    if(fbdo.stringData() == "1" && flag == false){
+>>>>>>> 2c2708fc65c0174874231d7787e20d56d9678127
         Firebase.getString(fbdo,"User/email");
         String email = fbdo.stringData();
         Serial.print(email);
@@ -151,6 +158,7 @@ void sendEmail (String email){
 }
 
 void alarmaActivada(){
+<<<<<<< HEAD
   Firebase.getString(fbdo,"User/alarma");
   String alarma = fbdo.stringData();
   if(alarma == "1"){
@@ -162,11 +170,16 @@ void alarmaActivada(){
   if(stateAlarm==1){
     for(int x=0;x<180;x++){
       //convertimos los grados de 0 a 180 a radienas 
+=======
+   for(int x=0; x<180; x++){
+      //convertimos los grados de 0 a 180 a radianes
+>>>>>>> 2c2708fc65c0174874231d7787e20d56d9678127
       sinVal = (sin(x*(3.1412/180)));
-      //calculamos el valor de la frecuencioa
+      //calculamos el valor de la frecuencia
       toneVal = 2000+(int(sinVal*1000));
       tone(18, toneVal);
       delay(2);
+<<<<<<< HEAD
       if(alarma == "1"){
         stateAlarm=!stateAlarm;
         delay(300);
@@ -176,3 +189,7 @@ void alarmaActivada(){
     noTone(18);
   }
 }
+=======
+    }
+}
+>>>>>>> 2c2708fc65c0174874231d7787e20d56d9678127
