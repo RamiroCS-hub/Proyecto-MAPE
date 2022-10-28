@@ -85,34 +85,33 @@ float sinVal;
 //frecuencia del tono
 int toneVal;
 //estado de la alarma
-boolean stateAlarm;
+bool stateAlarm = false;
 
 void loop(){
-    Firebase.getString(fbdo,"alamSis")
-    if (fbdo.stringData() == "1"){
+    String alarm;
+    Firebase.getString(fbdo,"User/alamSis",&alarm); 
+    if (alarm == "1"){
       sistemaAlarma();
     }
-    
+    digitalWrite(18,HIGH);
 }
 
 void sistemaAlarma (void){
-    Firebase.getString(fbdo,"User/alarma");
-    Serial.println(fbdo.stringData());
-    if(fbdo.stringData() == "1" && flag == false){
+    String alarma;
+    Firebase.getString(fbdo,"User/alarma",&alarma);
+    if(alarma == "1" && flag == false){
         Firebase.getString(fbdo,"User/email");
         String email = fbdo.stringData();
         Serial.print(email);
-        sendEmail(email);
-        alarmaActivada();
+        // sendEmail(email);
+        //alarmaActivada();
         flag = true;
     }else{
       Serial.println("oo");
     }
 }
-  
 
 void sendEmail (String email){
-    
     String textMsg = rtc.getTime("%A, %B %d %Y %H:%M:%S");
     // String textMsg = "asdasd";
     /* Declaramos una Sesion para poder configurar*/
@@ -151,8 +150,8 @@ void sendEmail (String email){
 }
 
 void alarmaActivada(){
-  Firebase.getString(fbdo,"User\alarma");
-  int alarma = firebaseData.stringData() 
+  Firebase.getString(fbdo,"User/alarma");
+  String alarma = fbdo.stringData();
   if(alarma == "1"){
     //se activa la alarma
     stateAlarm=!stateAlarm;
@@ -167,13 +166,12 @@ void alarmaActivada(){
       toneVal = 2000+(int(sinVal*1000));
       tone(18, toneVal);
       delay(2);
-      if(alarma == 1){
+      if(alarma == "1"){
         stateAlarm=!stateAlarm;
         delay(300);
       }
     }
-  }
-  else{
+  }else{
     noTone(18);
   }
 }
