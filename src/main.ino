@@ -3,6 +3,7 @@
 #include <ESP_Mail_Client.h> //Documentación: https://github.com/mobizt/ESP-Mail-Client/blob/master/README.md
 #include <FirebaseESP32.h>
 #include <ESP32Time.h>
+// Si ocurre algun error desinstalar y volver a instalar las livrerías que tiran error
 
 // #include <iostream>
 //Configuracion del servidor NTP
