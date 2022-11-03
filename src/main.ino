@@ -41,11 +41,11 @@ bool valor = true;
 
 void sendEmail (String);
 void alarmaActivada(void);
-void sistemaAlarma (void);
-
+void sistemaAlarma (void);  
 
 void setup(){
   pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(18, OUTPUT);
   Serial.begin(9600);
   Serial.println("Bienvenido a la consola de pruebas...");
 
@@ -93,28 +93,31 @@ void loop(){
       Serial.println("El sistema de alarma esta prendido");
       sistemaAlarma();
     }
-    digitalWrite(18,HIGH);
+    // digitalWrite(18,HIGH);
 }
 
 void sistemaAlarma (){
     Firebase.getString(fbdo,"User/alarma");
     Serial.println(fbdo.stringData());
-    if(fbdo.stringData() == "1" && flag == false){
+    if(fbdo.stringData() == "1"){
         Serial.println("La alarma esta activada");
         Firebase.getString(fbdo,"User/email");
         String email = fbdo.stringData();
-        Serial.print(email);
-        sendEmail(email);
-        //alarmaActivada();
-        flag = true;
+        if(flag == false){
+          Serial.print(email);
+        // sendEmail(email);
+        }
+        alarmaActivada();
     }else{
       Serial.println("oo");
+      digitalWrite(18, LOW);
     }
 }
 
 void sendEmail (String email){
-    String textMsg = rtc.getTime("%A, %B %d %Y %H:%M:%S");
-    // String textMsg = "asdasd";
+    // String textMsg = rtc.getTime("%A, %B %d %Y %H:%M:%S");
+    //smtp.debug(1);
+    
     /* Declaramos una Sesion para poder configurar*/
     ESP_Mail_Session session;
 
@@ -127,10 +130,12 @@ void sendEmail (String email){
     SMTP_Message message;
 
     /* Especificar los encabezados*/
+    message.sender.name = "ashe";
     message.sender.email = AUTHOR_EMAIL;
     message.subject = "ALARMA ACTIVADA";
     message.addRecipient(email,email);
     
+    String textMsg = "asdasd";
     message.text.content = textMsg.c_str();
 
     message.text.charSet = "us-ascii";
@@ -151,19 +156,24 @@ void sendEmail (String email){
 }
 
 void alarmaActivada(){
-
+  Serial.println("Deberia circular corriente");
+  digitalWrite(18,HIGH);
+  delay(500);
+  digitalWrite(18, LOW);
+  delay(500);
   // Firebase.getString(fbdo,"User/alarma");
   // String alarma = fbdo.stringData();
-  // if(alarma == "1"){
+  // // if(alarma == "1"){
   //   //se activa la alarma
   //   stateAlarm=!stateAlarm;
   //   delay(300);
   // }
 
   // if(stateAlarm==1){
+  //   Serial.println("La alarma se deberia sonar");
   //   for(int x=0;x<180;x++){
   //     //convertimos los grados de 0 a 180 a radienas 
-
+  //     Serial.println("Dentro del 1er for");
   //     for(int x=0; x<180; x++){
   //       //convertimos los grados de 0 a 180 a radianes
 
@@ -172,6 +182,7 @@ void alarmaActivada(){
   //       toneVal = 2000+(int(sinVal*1000));
   //       tone(18, toneVal);
   //       delay(2);
+  //       Serial.println("dentro del 2do for");
 
   //       if(alarma == "1"){
   //         stateAlarm=!stateAlarm;
@@ -183,3 +194,4 @@ void alarmaActivada(){
   //   }
   // }
 }
+
