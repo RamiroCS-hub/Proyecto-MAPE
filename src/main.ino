@@ -3,9 +3,8 @@
 #include <ESP_Mail_Client.h> //Documentación: https://github.com/mobizt/ESP-Mail-Client/blob/master/README.md
 #include <FirebaseESP32.h>
 #include <ESP32Time.h>
-// Si ocurre algun error desinstalar y volver a instalar las livrerías que tiran error
+// Si ocurre algun error desinstalar y volver a instalar las librerías que tiran error
 
-// #include <iostream>
 //Configuracion del servidor NTP
 const char* ntpServer = "pool.ntp.org"; //Servidor NTP
 const long gmtOffset_sec = (-4*3600) + 3600;     //Desplazamiento GMT
@@ -73,7 +72,6 @@ void setup(){
   config.database_url = DATABASE_URL;
 
   Firebase.begin(DATABASE_URL, API_KEY);
-  // Comment or pass false value when WiFi reconnection will control by your code or third party library
   Firebase.reconnectWiFi(true);
   Firebase.setDoubleDigits(5);
     
@@ -92,26 +90,21 @@ void loop(){
     String alarm;
     Firebase.getString(fbdo,"User/alamSis",&alarm); 
     if (alarm == "1"){
+      Serial.println("El sistema de alarma esta prendido");
       sistemaAlarma();
     }
     digitalWrite(18,HIGH);
 }
 
-<<<<<<< HEAD
-void sistemaAlarma (void){
-    String alarma;
-    Firebase.getString(fbdo,"User/alarma",&alarma);
-    if(alarma == "1" && flag == false){
-=======
 void sistemaAlarma (){
     Firebase.getString(fbdo,"User/alarma");
     Serial.println(fbdo.stringData());
     if(fbdo.stringData() == "1" && flag == false){
->>>>>>> 2c2708fc65c0174874231d7787e20d56d9678127
+        Serial.println("La alarma esta activada");
         Firebase.getString(fbdo,"User/email");
         String email = fbdo.stringData();
         Serial.print(email);
-        // sendEmail(email);
+        sendEmail(email);
         //alarmaActivada();
         flag = true;
     }else{
@@ -158,38 +151,35 @@ void sendEmail (String email){
 }
 
 void alarmaActivada(){
-<<<<<<< HEAD
-  Firebase.getString(fbdo,"User/alarma");
-  String alarma = fbdo.stringData();
-  if(alarma == "1"){
-    //se activa la alarma
-    stateAlarm=!stateAlarm;
-    delay(300);
-  }
 
-  if(stateAlarm==1){
-    for(int x=0;x<180;x++){
-      //convertimos los grados de 0 a 180 a radienas 
-=======
-   for(int x=0; x<180; x++){
-      //convertimos los grados de 0 a 180 a radianes
->>>>>>> 2c2708fc65c0174874231d7787e20d56d9678127
-      sinVal = (sin(x*(3.1412/180)));
-      //calculamos el valor de la frecuencia
-      toneVal = 2000+(int(sinVal*1000));
-      tone(18, toneVal);
-      delay(2);
-<<<<<<< HEAD
-      if(alarma == "1"){
-        stateAlarm=!stateAlarm;
-        delay(300);
-      }
-    }
-  }else{
-    noTone(18);
-  }
+  // Firebase.getString(fbdo,"User/alarma");
+  // String alarma = fbdo.stringData();
+  // if(alarma == "1"){
+  //   //se activa la alarma
+  //   stateAlarm=!stateAlarm;
+  //   delay(300);
+  // }
+
+  // if(stateAlarm==1){
+  //   for(int x=0;x<180;x++){
+  //     //convertimos los grados de 0 a 180 a radienas 
+
+  //     for(int x=0; x<180; x++){
+  //       //convertimos los grados de 0 a 180 a radianes
+
+  //       sinVal = (sin(x*(3.1412/180)));
+  //       //calculamos el valor de la frecuencia
+  //       toneVal = 2000+(int(sinVal*1000));
+  //       tone(18, toneVal);
+  //       delay(2);
+
+  //       if(alarma == "1"){
+  //         stateAlarm=!stateAlarm;
+  //         delay(300);
+  //       }else{
+  //         noTone(18);
+  //       }
+  //     }
+  //   }
+  // }
 }
-=======
-    }
-}
->>>>>>> 2c2708fc65c0174874231d7787e20d56d9678127
