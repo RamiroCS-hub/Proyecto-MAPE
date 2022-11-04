@@ -37,15 +37,23 @@ void setup() {
 
 void loop() {
     int Luz = (analogRead(33));
-    float Distancia = MedirDistancia();
-
-    EnviarDato(Luz, Distancia);
+    SistemaUltrasonido();
+    //float Distancia = MedirDistancia();
+    //EnviarDato(Luz, Distancia);
     EncenderLuz();
     SacarFoto();
 
     delay(500);
   }
  
+ void SistemaUltrasonido(){
+  Firebase.setString(fbdo, "/User/alarma", "0");
+  float distanciaUS = SensarUltrasonido();
+  if(distanciaUS < DIST_MIN){
+    Firebase.setString(fbdo, "/User/alarma", "1");
+  }
+
+
 void ConectarWiFi (void){
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);
