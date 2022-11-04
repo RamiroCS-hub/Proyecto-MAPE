@@ -8,52 +8,31 @@
 #define API_KEY "onRVw4e1U3GPcL9QOLwoLWteRvEk7945GKPgILH3"
 #define DATABASE_URL "https://fir-test-50790-default-rtdb.firebaseio.com/"
 
-#define TRIGGERPIN 26
-#define ECHOPIN 25
-
+#define TRIGGERDOOR 26
+#define ECHODOOR 25
+#define TRIGGERCAM 18
+#define ECHOCAM 19
+#define PILUZ 32
+#define PIPHOTO 33
+#define LUZUM 2000
+#define DIST_MI 25
+#define PICAM 27
 FirebaseData fbdo;
 //FirebaseAuth auth;
 //FirebaseConfig config;
 
 bool flag_conectado = 0;
 int contador_segundos = 0;
-bool bit;
-float dist_recibida;
 
+//Prototipos
 void ConectarWiFi (void);
-float MedirDistancia (void);
-void EncenderLuz (void);
-void EnviarDato(int, float);
-void SacarFoto(void);
+void EncenderLuz (int, float);
+void SacarFoto(float);
+float SensarUltrasonido(int, int);
+void SistemaEntrada(void);
+void SistemaPuerta(void);
 
-void setup() {
-  ConectarWiFi();
-  pinMode(33, INPUT);
-  pinMode(27, OUTPUT);
-  pinMode(32, OUTPUT);
-  pinMode(ECHOPIN, INPUT);
-  pinMode(TRIGGERPIN, OUTPUT);
-}
-
-void loop() {
-    int Luz = (analogRead(33));
-    SistemaUltrasonido();
-    //float Distancia = MedirDistancia();
-    //EnviarDato(Luz, Distancia);
-    EncenderLuz();
-    SacarFoto();
-
-    delay(500);
-  }
- 
- void SistemaUltrasonido(){
-  Firebase.setString(fbdo, "/User/alarma", "0");
-  float distanciaUS = SensarUltrasonido();
-  if(distanciaUS < DIST_MIN){
-    Firebase.setString(fbdo, "/User/alarma", "1");
-  }
-
-
+//Conecta a Wifi
 void ConectarWiFi (void){
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);
@@ -87,69 +66,80 @@ void ConectarWiFi (void){
   Firebase.setDoubleDigits(5);
 }
 
-float MedirDistancia (void){
-  digitalWrite(TRIGGERPIN, LOW);
-  delayMicroseconds(2);
-  digitalWrite(TRIGGERPIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIGGERPIN, LOW);
-
-  float Duracion, Distancia;
-
-  Duracion = pulseIn(ECHOPIN, HIGH);
-  Distancia = Duracion/58;//convertimos el tiempo a la distancia en cm
-
-  return Distancia;
+//SETUP
+void setup() {
+  ConectarWiFi();
+  pinMode(PIPHOTO, INPUT);
+  pinMode(PICAM , OUTPUT);
+  pinMode(PILUZ, OUTPUT);
+  pinMode(ECHODOOR, INPUT);
+  pinMode(TRIGGERDOOR, OUTPUT);
+  pinMode(ECHOCAM, INPUT);
+  pinMode(TRIGGERCAM, OUTPUT);
 }
 
-void EnviarDato(int Luz, float Distancia){
-    Firebase.setInt(fbdo, "User/Luz", Luz);
-    Firebase.setFloat(fbdo, "User/Distancia", Distancia);
-   
-    if(Luz > 2000){
-     
-      Firebase.setString(fbdo, "User/Estado", "Noche");
-      Firebase.setBool(fbdo, "User/Foco", true);
-     
-      Serial.println("Noche");
-    }
-    else{
-      if(Luz <= 2000){
+void loop() {
 
-        Firebase.setString(fbdo, "User/Estado", "Dia");
-        Firebase.setBool(fbdo, "User/Foco", false);
-
-        Serial.println("Dia");
-
-      }
-    }
-
-    Serial.print("Nivel de luz: ");
+    SistemaEntrada();
+    SistemaPuerta();
+    int Luz = analogRead(PIPHOTO);
     Serial.println(Luz);
-    Serial.print("Distancia: ");
-    Serial.println(Distancia);
+    delay(500);
+}
+ 
+void SistemaEntrada(){
+  int luz = analogRead(PIPHOTO);
+  float dist = SensarUltrasonido(TRIGGERCAM,ECHOCAM);
+  EncenderLuz(luz,dist);
+  SacarFoto(dist);
 }
 
-void EncenderLuz(void){
-  Firebase.getBool(fbdo, "User/Foco", &bit);
-  Firebase.getFloat(fbdo, "User/Distancia", &dist_recibida);
-  if (bit == true && dist_recibida <= 20){
-    digitalWrite(32, HIGH);
+void SistemaPuerta(){
+  float distanciaUS = SensarUltrasonido(TRIGGERDOOR, ECHODOOR);
+  Serial.println("Distancia puerta");
+  Serial.println(distanciaUS);
+  if(distanciaUS < DIST_MI){
+    Firebase.setString(fbdo, "/User/alarma", "1");
+  }else{
+    Firebase.setString(fbdo, "/User/alarma", "0");
+  }
+}
+
+float SensarUltrasonido (int trigger, int echo){
+  digitalWrite(trigger, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigger, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigger, LOW);
+
+  float duracion, distancia;
+
+  duracion = pulseIn(echo, HIGH);
+  distancia = duracion/58;//convertimos el tiempo a la distancia en cm
+
+  return distancia;
+}
+
+void EncenderLuz(int luz, float dist){
+  if (luz > LUZUM && dist <= 20){
+    digitalWrite(PILUZ, HIGH);
   }
   else{
-      digitalWrite(32, LOW);
+      digitalWrite(PILUZ, LOW);
   }
 }
 
-void SacarFoto(void){
-  Firebase.getFloat(fbdo, "User/Distancia", &dist_recibida);
-  bool Camara = digitalRead(27);
-  if(dist_recibida <= 5 && Camara == true){
+void SacarFoto(float dist){
+  Firebase.getString(fbdo,"User/camSis");
+  Serial.println("Distancia camara");
+  Serial.println(dist);
+  if(dist <= 5 && fbdo.stringData() == "1"){
     Firebase.setBool(fbdo, "User/Foto", true);
     Serial.println("Sacar foto");
     Serial.println("- - - - - - - - - - - -");
   }
-  else
-  Firebase.setBool(fbdo, "User/Foto", false);
+  else{
+    Firebase.setBool(fbdo, "User/Foto", false);
     Serial.println("- - - - - - - - - - - -");
+  }
 }
