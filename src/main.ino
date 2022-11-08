@@ -115,7 +115,7 @@ void sistemaAlarma (){
 }
 
 void sendEmail (String email){
-    // String textMsg = rtc.getTime("%A, %B %d %Y %H:%M:%S");
+    // 
     //smtp.debug(1);
     
     /* Declaramos una Sesion para poder configurar*/
@@ -130,12 +130,12 @@ void sendEmail (String email){
     SMTP_Message message;
 
     /* Especificar los encabezados*/
-    message.sender.name = "ashe";
+    message.sender.name = "Firebase Security";
     message.sender.email = AUTHOR_EMAIL;
     message.subject = "ALARMA ACTIVADA";
     message.addRecipient(email,email);
     
-    String textMsg = "asdasd";
+    String textMsg = rtc.getTime("%A, %B %d %Y %H:%M:%S");
     message.text.content = textMsg.c_str();
 
     message.text.charSet = "us-ascii";
