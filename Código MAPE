@@ -2,24 +2,24 @@
 #include <WiFi.h>
 #include <FirebaseESP32.h> 
 
-#define SSID "ETRR Free"
-#define PASSWORD ""
+#define SSID "iPhone de Belén"
+#define PASSWORD "Ravenclaw"
 
 #define API_KEY "onRVw4e1U3GPcL9QOLwoLWteRvEk7945GKPgILH3"
 #define DATABASE_URL "https://fir-test-50790-default-rtdb.firebaseio.com/"
 
-#define TRIGGERDOOR 26
-#define ECHODOOR 25
-#define TRIGGERCAM 18
-#define ECHOCAM 19
-#define PILUZ 32
-#define PIPHOTO 33
+#define TRIGGERDOOR 32
+#define ECHODOOR 33
+#define TRIGGERCAM 26
+#define ECHOCAM 25
+#define PILUZ 23
+// #define PIPHOTO 27
 #define LUZUM 2000
-#define DIST_MI 25
+#define DIST_MI 10
 #define PICAM 27
 FirebaseData fbdo;
-//FirebaseAuth auth;
-//FirebaseConfig config;
+FirebaseAuth auth;
+FirebaseConfig config;
 
 bool flag_conectado = 0;
 int contador_segundos = 0;
@@ -47,17 +47,19 @@ void ConectarWiFi (void){
   }
 
   if(WiFi.status() == WL_CONNECTED){
+    Serial.println("Conectado");
     digitalWrite(LED_BUILTIN, HIGH);
   }
   else{
+    Serial.println("No conectado");
     digitalWrite(LED_BUILTIN, LOW);
   }
 
   Serial.printf("Firebase Client v%s\n\n", FIREBASE_CLIENT_VERSION);
 
-  //config.api_key = API_KEY;
+  config.api_key = API_KEY;
 
-  //config.database_url = DATABASE_URL;
+  config.database_url = DATABASE_URL;
 
   Firebase.begin(DATABASE_URL, API_KEY);
 
@@ -69,7 +71,7 @@ void ConectarWiFi (void){
 //SETUP
 void setup() {
   ConectarWiFi();
-  pinMode(PIPHOTO, INPUT);
+  // pinMode(PIPHOTO, INPUT);
   pinMode(PICAM , OUTPUT);
   pinMode(PILUZ, OUTPUT);
   pinMode(ECHODOOR, INPUT);
@@ -79,18 +81,17 @@ void setup() {
 }
 
 void loop() {
-
     SistemaEntrada();
     SistemaPuerta();
-    int Luz = analogRead(PIPHOTO);
-    Serial.println(Luz);
+    // int Luz = analogRead(PIPHOTO);
+    // Serial.println(Luz);
     delay(500);
 }
  
 void SistemaEntrada(){
-  int luz = analogRead(PIPHOTO);
+  // int luz = analogRead(PIPHOTO);
   float dist = SensarUltrasonido(TRIGGERCAM,ECHOCAM);
-  EncenderLuz(luz,dist);
+  EncenderLuz(2300,dist);
   SacarFoto(dist);
 }
 
@@ -100,8 +101,6 @@ void SistemaPuerta(){
   Serial.println(distanciaUS);
   if(distanciaUS < DIST_MI){
     Firebase.setString(fbdo, "/User/alarma", "1");
-  }else{
-    Firebase.setString(fbdo, "/User/alarma", "0");
   }
 }
 
@@ -115,17 +114,17 @@ float SensarUltrasonido (int trigger, int echo){
   float duracion, distancia;
 
   duracion = pulseIn(echo, HIGH);
-  distancia = duracion/58;//convertimos el tiempo a la distancia en cm
+  distancia = duracion/58; //convertimos el tiempo a la distancia en cm
 
   return distancia;
 }
 
 void EncenderLuz(int luz, float dist){
   if (luz > LUZUM && dist <= 20){
-    digitalWrite(PILUZ, HIGH);
+    digitalWrite(PILUZ, LOW);
   }
   else{
-      digitalWrite(PILUZ, LOW);
+      digitalWrite(PILUZ, HIGH);
   }
 }
 
